@@ -18,7 +18,7 @@ namespace iPhoneBackupReader
     protected override void OnShown(EventArgs e)
     {
       folderSource = ConfigurationManager.AppSettings["BackupFolder"].TrimEnd('\\') + '\\';
-      manifestFile = string.Concat(folderSource, "Manifest.db");
+      manifestFile = string.Concat("Data Source=", folderSource, "Manifest.db");
       folderDestination = ConfigurationManager.AppSettings["DestinationFolder"].TrimEnd('\\') + '\\';
       extensions = ConfigurationManager.AppSettings["FindFileExtensions"].Split(',');
 
@@ -26,19 +26,26 @@ namespace iPhoneBackupReader
 Destination folder: {folderDestination}
 Manifest file: {manifestFile}
 Find files: {(string.Join(", ", extensions))}");
-    }
 
-    private void button1_Click(object sender, EventArgs e)
-    {
       using (var db = new SQLiteConnection(manifestFile))
       {
         db.Open();
 
         ReadFilesFromDB(db);
         ReadFilesFromFolder();
-        Execute();
       }
+
+      var aantal =
+        filesdb.Where(x => filesdisc.ContainsKey(x.Key)).Count();
+
+      edt.AppendText($@"
+
+Found file count: {aantal:N0}
+
+Pressing 'Action' button will execute without warning!");
     }
+
+    private void button1_Click(object sender, EventArgs e) => Execute();
 
     private class FileRec
     {
